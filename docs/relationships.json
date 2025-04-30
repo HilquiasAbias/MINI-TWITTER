@@ -1,0 +1,99 @@
+{
+    "info": {
+        "name": "Relationships API",
+        "description": "This collection contains requests to test the relationships module of the Mini Twitter project. It includes endpoints to follow/unfollow users and list followers and followed users.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Follow/unfollow user",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{access_token}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/relationships/follow/2/",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "relationships",
+                        "follow",
+                        "2",
+                        ""
+                    ]
+                },
+                "description": "Toggles between following and unfollowing a specific user. If the user is already being followed, the request will unfollow them. Otherwise, it will follow them."
+            },
+            "response": []
+        },
+        {
+            "name": "Get user followers",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{access_token}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/relationships/followers/1/",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "relationships",
+                        "followers",
+                        "1",
+                        ""
+                    ]
+                },
+                "description": "Returns the list of users who follow a specific user (their followers)."
+            },
+            "response": []
+        },
+        {
+            "name": "Get user following",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{access_token}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{base_url}}/relationships/following/1/",
+                    "host": [
+                        "{{base_url}}"
+                    ],
+                    "path": [
+                        "relationships",
+                        "following",
+                        "1",
+                        ""
+                    ]
+                },
+                "description": "Returns the list of users that a specific user is following."
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000",
+            "type": "string"
+        },
+        {
+            "key": "access_token",
+            "value": "seu_token_jwt_aqui",
+            "type": "string"
+        }
+    ]
+}
