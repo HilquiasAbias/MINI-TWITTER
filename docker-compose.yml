@@ -6,11 +6,51 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_DB=mini_twitter
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_DB=${DB_NAME}
+    networks:
+      - mini-twitter-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db # Sobrescreve o host do banco
+    volumes:
+      - static_volume:/home/mini-twitter-user/app/staticfiles
+    restart: always
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8000/admin/" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    depends_on:
+      - db
+    networks:
+      - mini-twitter-network
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - static_volume:/usr/share/nginx/html/static
     ports:
-      - "5432:5432"
+      - "80:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - mini-twitter-network
+
+networks:
+  mini-twitter-network:
+    driver: bridge
 
 volumes:
   postgres_data:
+  static_volume:

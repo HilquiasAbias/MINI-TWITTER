@@ -1,0 +1,38 @@
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+
+WORKDIR /app
+
+# Instala dependências do sistema como root, incluindo o wget
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    gcc \
+    python3-dev \
+    libpq-dev \
+    wget && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Cria usuário e diretórios necessários
+RUN useradd -m mini-twitter-user && \
+    mkdir -p /home/mini-twitter-user/.cache/uv && \
+    chown -R mini-twitter-user:mini-twitter-user /home/mini-twitter-user && \
+    chmod -R 755 /home/mini-twitter-user/.cache && \
+    chown -R mini-twitter-user:mini-twitter-user /app
+
+# Copia arquivos do projeto
+COPY --chown=mini-twitter-user:mini-twitter-user pyproject.toml uv.lock ./
+
+# Instala dependências como mini-twitter-user
+USER mini-twitter-user
+RUN uv sync --frozen --no-install-project
+
+# Copia o restante do código
+COPY --chown=mini-twitter-user:mini-twitter-user . .
+
+# Configura ambiente
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/home/mini-twitter-user/.local/bin:$PATH"
+
+# Comando de execução
+CMD ["uv", "run", "gunicorn", "mini_twitter.wsgi:application", "--bind", "0.0.0.0:8000"]
