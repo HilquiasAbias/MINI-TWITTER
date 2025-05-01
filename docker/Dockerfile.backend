@@ -22,6 +22,7 @@ RUN useradd -m mini-twitter-user && \
 # Copia arquivos do projeto
 COPY --chown=mini-twitter-user:mini-twitter-user pyproject.toml uv.lock ./
 
+
 # Instala dependências como mini-twitter-user
 USER mini-twitter-user
 RUN uv sync --frozen --no-install-project
