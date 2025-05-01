@@ -45,3 +45,7 @@ services:
         condition: service_healthy
     networks:
       - mini-twitter-network
+
+networks:
+  mini-twitter-network:
+    driver: bridge
