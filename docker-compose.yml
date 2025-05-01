@@ -49,3 +49,7 @@ services:
 networks:
   mini-twitter-network:
     driver: bridge
+
+volumes:
+  postgres_data:
+  static_volume:
