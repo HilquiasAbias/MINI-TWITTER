@@ -20,6 +20,8 @@ class FollowUnfollowView(APIView):
     
     def post(self, request, user_id):
         """Seguir ou deixar de seguir um usuário"""
+        print(f"Request user ID: {request.user.id}")
+        print(f"User ID to follow/unfollow: {user_id}")
         try:
             # Verificar se o usuário a ser seguido existe
             get_object_or_404(User, id=user_id)
@@ -33,10 +35,12 @@ class FollowUnfollowView(APIView):
             is_following = Relationship.objects.check_is_following(request.user.id, user_id)
             
             if is_following:
+                print("Unfollowing user...")
                 # Deixar de seguir
                 Relationship.objects.unfollow_user(request.user.id, user_id)
                 return Response({"following": False}, status=status.HTTP_200_OK)
             else:
+                print("Following user...")
                 # Seguir
                 success = Relationship.objects.follow_user(request.user.id, user_id)
                 if success:

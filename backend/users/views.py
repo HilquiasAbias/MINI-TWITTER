@@ -6,6 +6,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.generics import ListAPIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.contrib.auth.models import User
 from users.models import Profile
 from users.serializers import (
@@ -38,6 +39,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['username'] = user.username
         return data
 
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     """View customizada para obtenção de tokens"""
     serializer_class = CustomTokenObtainPairSerializer
@@ -65,6 +67,7 @@ class UserDetailView(APIView):
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
     
     def get(self, request):
         profile = request.user.profile
@@ -72,11 +75,15 @@ class UserProfileView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def put(self, request):
+        print("Dados recebidos:", request.data)
+        print("Arquivos recebidos:", request.FILES)
+        
         profile = request.user.profile
         serializer = ProfileUpdateSerializer(profile, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
+        print("Erros de validação:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SearchUsersView(ListAPIView):
@@ -87,4 +94,10 @@ class SearchUsersView(ListAPIView):
     def get_queryset(self):
         query = self.request.query_params.get('q', None)
         return Profile.objects.search_users(query)
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"request": self.request})
+        return context
+
 
