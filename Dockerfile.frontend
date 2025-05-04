@@ -1,22 +1,27 @@
-# Etapa 1: Build
 FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-COPY frontend/package.json frontend/package-lock.json ./
-RUN npm install
+ENV NEXT_TELEMETRY_DISABLED=1
+
+COPY frontend/package.json frontend/yarn.lock* ./
+
+RUN apk add --no-cache libc6-compat && \
+    yarn install --frozen-lockfile || \
+    yarn install --network-timeout 1000000
 
 COPY frontend .
 
-RUN npm run build
+RUN yarn build
 
-# Etapa 2: Produção
 FROM node:18-alpine AS runner
 
 WORKDIR /app
 
-ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
 
+COPY --from=builder /app/next.config.ts ./
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
@@ -24,4 +29,4 @@ COPY --from=builder /app/package.json ./package.json
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["yarn", "start"]

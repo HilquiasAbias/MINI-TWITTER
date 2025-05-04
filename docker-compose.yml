@@ -1,29 +1,73 @@
-version: '3'
-
 services:
-
   db:
-
     image: postgres:15
-
+    restart: always
     volumes:
-
       - postgres_data:/var/lib/postgresql/data/
-
     environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    networks:
+      - mini-twitter-network
 
-      - POSTGRES_PASSWORD=postgres
+  api:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.backend
+    env_file:
+      - .env
+    environment:
+      DB_HOST: ${DB_HOST}
+      POPULATE_DB: true
+      # Adicione estas configurações para servir arquivos estáticos
+      DJANGO_SETTINGS_MODULE: mini_twitter.settings
+    volumes:
+      - static_volume:/app/staticfiles
+      - ./mock:/app/mock
+      # Importante: não monte um volume sobre /app/media, deixe o Docker gerenciar
+    restart: always
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8000/admin/" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    depends_on:
+      - db
+    networks:
+      - mini-twitter-network
 
-      - POSTGRES_USER=postgres
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+    depends_on:
+      - api
+    networks:
+      - mini-twitter-network
 
-      - POSTGRES_DB=mini_twitter
-
-      - POSTGRES_HOST=db
-
+  nginx:
+    image: nginx:alpine
+    restart: always
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - static_volume:/static
     ports:
+      - "80:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - mini-twitter-network
 
-      - "5432:5432"
+networks:
+  mini-twitter-network:
+    driver: bridge
 
 volumes:
-
   postgres_data:
+  static_volume:

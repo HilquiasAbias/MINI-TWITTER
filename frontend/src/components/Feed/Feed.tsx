@@ -15,7 +15,7 @@ export const Feed = () => {
     const [hasMorePosts, setHasMorePosts] = useState(true)
     const [hasMoreUsers, setHasMoreUsers] = useState(true)
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
-    const { token } = useAuth()
+    const { token, user } = useAuth()
 
     const fetchPosts = async () => {
         try {
@@ -57,13 +57,16 @@ export const Feed = () => {
             // Verificando a estrutura da resposta
             const userData = response.data.results || response.data;
 
+            // Filtrar o usuário logado da lista
+            const filteredUsers = userData.filter((u: any) => u.id !== user?.id);
+
             if (userPage === 1) {
-                setUsers(userData)
+                setUsers(filteredUsers)
             } else {
                 // Similar ao que fizemos com os posts, evitamos duplicatas
                 setUsers((prev) => {
                     const existingIds = new Set(prev.map(user => user.id));
-                    const newUsers = userData.filter((user: any) => !existingIds.has(user.id));
+                    const newUsers = filteredUsers.filter((user: any) => !existingIds.has(user.id));
                     return [...prev, ...newUsers];
                 });
             }

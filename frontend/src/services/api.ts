@@ -2,11 +2,10 @@ import { User, UserProfile } from '@/lib/types'
 import axios from 'axios'
 
 const api = axios.create({
-    // baseURL: 'http://localhost/api',
-    baseURL: 'http://localhost:8000/api',
+    baseURL: '/api',
+    // baseURL: 'http://localhost:8000/api'
 })
 
-// Interceptor de autenticação mantido
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token')
     if (token) {
@@ -15,11 +14,24 @@ api.interceptors.request.use((config) => {
     return config
 })
 
+// Adicionar interceptor de resposta para tratar erros 401
+api.interceptors.response.use(
+    response => response,
+    error => {
+        if (error.response && error.response.status === 401) {
+            localStorage.removeItem('token')
+            localStorage.removeItem('user')
+            window.location.href = '/login'
+        }
+        return Promise.reject(error)
+    }
+)
+
 export const authService = {
     register: (data: { email: string; username: string; password: string, password2: string }) =>
-        api.post('/users/register/', data), // Endpoint atualizado
+        api.post('/users/register/', data),
     login: (data: { username: string; password: string }) =>
-        api.post('/users/token/', data), // Endpoint atualizado
+        api.post('/users/token/', data),
 }
 
 export const postService = {
@@ -27,30 +39,29 @@ export const postService = {
         const formData = new FormData()
         formData.append('content', data.content)
         if (data.image) formData.append('image', data.image)
-        return api.post('/posts/', formData) // Endpoint atualizado
+        return api.post('/posts/', formData)
     },
     getFeed: (page: number = 1) =>
-        api.get('/posts/feed/', { params: { page } }), // Endpoint atualizado
+        api.get('/posts/feed/', { params: { page } }),
     likePost: (postId: string) =>
-        api.post(`/posts/${postId}/like/`), // Novo endpoint de like
+        api.post(`/posts/${postId}/like/`),
 }
 
 export const userService = {
     follow: (userId: string) =>
-        api.post(`/relationships/follow/${userId}/`), // Endpoint atualizado
+        api.post(`/relationships/follow/${userId}/`),
     unfollow: (userId: string) =>
         api.delete(`/relationships/follow/${userId}/`),
     checkFollow: (userId: string) =>
-        api.get(`/relationships/check-follow/${userId}/`), // Novo endpoint
+        api.get(`/relationships/check-follow/${userId}/`),
     getFoollowers: (userId: string, page: number = 1, pageSize: number = 10) =>
         api.get(`/relationships/followers/${userId}/`, { params: { page, page_size: pageSize } }),
     getFollowing: (userId: string, page: number = 1, pageSize: number = 10) =>
         api.get(`/relationships/following/${userId}/`, { params: { page, page_size: pageSize } }),
     getRelantionshipsStats: (userId: string) =>
-        api.get(`/relationships/stats/${userId}/`), // Endpoint atualizado
+        api.get(`/relationships/stats/${userId}/`),
     getUserPosts: (userId: string, page: number = 1) =>
-        api.get(`/posts/user/${userId}/`, { params: { page } }), // Endpoint atualizado
-    // Método corrigido para usar o endpoint correto
+        api.get(`/posts/user/${userId}/`, { params: { page } }),
     getUsers: (page: number = 1, pageSize: number = 10, query: string = '') =>
         api.get('/users/search/', {
             params: {
@@ -61,15 +72,14 @@ export const userService = {
         }),
 }
 
-// Adicione isso para pegar o perfil do usuário logado
 export const profileService = {
     getProfile: (userId: string) =>
-        api.get(`/users/${userId}/`), // Endpoint atualizado
+        api.get(`/users/${userId}/`),
     getCurrentUserProfile: () => api.get<UserProfile>('/users/profile/'),
     updateProfile: (data: { bio?: string; avatar?: File }) => {
         const formData = new FormData();
         if (data.bio !== undefined) formData.append('bio', data.bio);
-        if (data.avatar) formData.append('picture', data.avatar);  // IMPORTANTE: o nome deve corresponder ao campo no modelo
+        if (data.avatar) formData.append('picture', data.avatar);
 
         console.log('Enviando dados para atualização de perfil:', {
             bio: data.bio,

@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { userService } from '@/services/api';
 import { UserItem } from './UserItem';
-
+import { useAuth } from '@/context/auth';
 
 export const UserList: React.FC = () => {
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const { user } = useAuth();
 
     useEffect(() => {
         const fetchUsers = async () => {
             try {
                 setLoading(true);
                 const response = await userService.getUsers();
-                setUsers(response.data.results);
+                // Filtrar o usuário logado da lista
+                const filteredUsers = response.data.results.filter((u: any) => u.id !== user?.id);
+                setUsers(filteredUsers);
             } catch (error) {
                 console.error('Error fetching users:', error);
                 setError('Failed to load users');
@@ -23,7 +26,7 @@ export const UserList: React.FC = () => {
         };
 
         fetchUsers();
-    }, []);
+    }, [user]);
 
     const handleFollow = (userId: string) => {
         // Update local state if needed

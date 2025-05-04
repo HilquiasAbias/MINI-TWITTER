@@ -1,7 +1,6 @@
 'use client'
 import { profileService } from '@/services/api'
 import { createContext, useContext, useEffect, useState } from 'react'
-import axios from 'axios'
 import { useRouter } from 'next/navigation'
 
 type User = {
@@ -33,25 +32,6 @@ const AuthContext = createContext<AuthContextType>({
     logout: () => { }
 })
 
-// Set up a global axios interceptor outside of the component
-// This ensures it's set up once and applies to all axios instances
-let interceptorInitialized = false;
-const setupAxiosInterceptor = (logoutFn: () => void) => {
-    if (!interceptorInitialized) {
-        axios.interceptors.response.use(
-            response => response,
-            error => {
-                if (error.response && error.response.status === 401) {
-                    console.log('Token expirado. Redirecionando para login...')
-                    logoutFn()
-                }
-                return Promise.reject(error)
-            }
-        )
-        interceptorInitialized = true;
-    }
-}
-
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null)
     const [token, setToken] = useState<string | null>(null)
@@ -66,11 +46,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         router.push('/login')
     }
 
-    // Set up the interceptor as soon as the component mounts
-    useEffect(() => {
-        setupAxiosInterceptor(logout)
-    }, [])
-
     useEffect(() => {
         const initAuth = async () => {
             const storedToken = localStorage.getItem('token')
@@ -79,7 +54,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (storedToken) {
                 setToken(storedToken)
 
-                // Primeiro, tente usar o usuário armazenado no localStorage
                 if (storedUser) {
                     try {
                         const parsedUser = JSON.parse(storedUser)
@@ -91,16 +65,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     }
                 }
 
-                // Em seguida, tente obter o perfil atualizado da API
                 try {
                     const res = await profileService.getCurrentUserProfile()
                     console.log("Resposta da API de perfil:", res.data);
 
-                    // Extrair os dados do usuário da resposta
                     const profileData = res.data;
-                    const userData = profileData.user; // A resposta tem um objeto 'user' aninhado
+                    const userData = profileData.user;
 
-                    // Criar um objeto de usuário normalizado
                     const apiUser: User = {
                         id: userData!.id,
                         username: userData!.username,
@@ -108,9 +79,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                         bio: profileData.bio || '',
                         picture: profileData.picture || ''
                     };
-
-                    console.log("Usuário normalizado:", apiUser);
-
                     setUser(apiUser)
                     localStorage.setItem('user', JSON.stringify(apiUser))
                 } catch (error) {

@@ -8,7 +8,7 @@ wheels/
 media/
 
 # Virtual environments
-.venv
+backend/.venv
 
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.

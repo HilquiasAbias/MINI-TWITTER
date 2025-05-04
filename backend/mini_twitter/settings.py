@@ -87,16 +87,11 @@ WSGI_APPLICATION = 'mini_twitter.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        # 'NAME': config('DB_NAME', default='mini_twitter'),
-        # 'USER': config('DB_USER', default='postgres'),
-        # 'PASSWORD': config('DB_PASSWORD', default='postgres'),
-        # 'HOST': config('DB_HOST', default='localhost'),
-        # 'PORT': config('DB_PORT', default='5432'),
-        'NAME': 'mini_twitter',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'NAME': config('DB_NAME', default='mini_twitter'),
+        'USER': config('DB_USER', default='postgres'),
+        'PASSWORD': config('DB_PASSWORD', default='postgres'),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='5432'),
     }
 }
 
@@ -140,6 +135,8 @@ SIMPLE_JWT = {
 CORS_ALLOW_ALL_ORIGINS = True  # Segurança: desative isso em produção
 CORS_ALLOWED_ORIGINS = [
     #"http://localhost:3000", 
+    # "http://localhost:3000",
+    # "http://localhost",
 ]
 
 # Se estiver usando credenciais (cookies/autenticação)

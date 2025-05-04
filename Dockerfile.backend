@@ -22,13 +22,15 @@ RUN useradd -m mini-twitter-user && \
 # Copia arquivos do projeto
 COPY --chown=mini-twitter-user:mini-twitter-user backend/pyproject.toml backend/uv.lock backend/entrypoint.sh ./
 
-
 # Instala dependências como mini-twitter-user
 USER mini-twitter-user
 RUN uv sync --frozen --no-install-project
 
 # Copia o restante do código
 COPY --chown=mini-twitter-user:mini-twitter-user ./backend .
+
+# Garante que o script de população tenha permissão de execução
+RUN chmod +x populate_db.py
 
 # Configura ambiente
 ENV PYTHONDONTWRITEBYTECODE=1 \

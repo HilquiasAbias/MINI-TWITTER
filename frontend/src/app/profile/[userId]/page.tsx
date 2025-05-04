@@ -72,14 +72,10 @@ export default function ProfilePage() {
                 // Mapear os dados corretamente com base na estrutura da resposta
                 const profileData = profileRes.data;
 
-                // Construir a URL completa da imagem
+                // Modifique a parte que constrói a URL da imagem
                 let avatarUrl = profileData.picture || '';
 
-                // Se a URL da imagem começar com /media/, adicione a URL base do servidor
-                if (avatarUrl && avatarUrl.startsWith('/media/')) {
-                    avatarUrl = `http://localhost:8000${avatarUrl}`;
-                }
-
+                // Não modifique o caminho, use-o como está
                 console.log('avatarUrl:', avatarUrl);
 
                 setUser({
@@ -208,7 +204,8 @@ export default function ProfilePage() {
     const isOwnProfile = currentUser && (currentUser.id == userId);
 
     console.log('user:', user);
-    const avatarUrl = user.avatar ? 'http://localhost:8000' + user.avatar : '/default-avatar.png';
+    // const avatarUrl = user.avatar ? 'http://localhost:8000' + user.avatar : '/default-avatar.png';
+    const avatarUrl = user.avatar || '/default-avatar.png';
     console.log('avatarUrl:', avatarUrl);
 
 
